@@ -30,13 +30,13 @@ typedef struct {
     unsigned char next_sector;
     char empty[8];
     t_dir_entry dir[10];
-
 } t_dir_sector;
 
 typedef struct {
     unsigned char next_track;
     unsigned char next_sector;
-
+    bigendian sequence;
+    char data[252];
 } t_usr_sector;
 
 typedef union {
@@ -45,5 +45,8 @@ typedef union {
     t_dir_sector dir;
     t_usr_sector usr;
 } t_sector;
+
+
+void empty_sector(t_sector *sector);
 
 #endif

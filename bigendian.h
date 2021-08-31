@@ -5,4 +5,8 @@ typedef struct {
     char digit[2];
 } bigendian;
 
+int bigendian_get(bigendian *b);
+
+void bigendian_set(bigendian *b,int value);
+
 #endif
