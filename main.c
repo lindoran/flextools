@@ -12,6 +12,7 @@ int main() {
     //floppy_build(&floppy,40,SINGLE_SIDE,SINGLE_DENSITY);
     floppy_format(&floppy,"TEST",1);
     floppy_export(&floppy,"test.dsk");
+    floppy_release(&floppy);
 
     exit(0);
 }

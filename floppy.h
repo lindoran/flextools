@@ -24,4 +24,6 @@ void floppy_format(t_floppy *floppy,char *label,int number);
 
 void floppy_export(t_floppy *floppy,char *filename);
 
+void floppy_release(t_floppy *floppy);
+
 #endif
