@@ -6,5 +6,5 @@
 
 
 void empty_sector(t_sector *sector) {
-    memset(sector,0,sizeof(t_raw_sector));
+    memset(sector,0,SECTOR_SIZE);
 }

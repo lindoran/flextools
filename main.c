@@ -8,8 +8,10 @@ t_floppy floppy;
 
 int main() {
 
-    build_floppy(&floppy,80,DOUBLE_SIDE,DOUBLE_DENSITY);
-    format(&floppy,"TEST",1);
+    floppy_build(&floppy,80,DOUBLE_SIDE,DOUBLE_DENSITY);
+    //floppy_build(&floppy,40,SINGLE_SIDE,SINGLE_DENSITY);
+    floppy_format(&floppy,"TEST",1);
+    floppy_export(&floppy,"test.dsk");
 
     exit(0);
 }

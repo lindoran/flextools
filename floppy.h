@@ -18,8 +18,10 @@ typedef struct {
 } t_floppy;
 
 
-void build_floppy(t_floppy *floppy,int num_tracks,enum e_side side,enum e_density density);
+void floppy_build(t_floppy *floppy,int num_tracks,enum e_side side,enum e_density density);
 
-void format(t_floppy *floppy,char *label,int number);
+void floppy_format(t_floppy *floppy,char *label,int number);
+
+void floppy_export(t_floppy *floppy,char *filename);
 
 #endif

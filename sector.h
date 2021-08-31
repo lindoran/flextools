@@ -4,6 +4,8 @@
 #include "bigendian.h"
 #include "directory.h"
 
+#define SECTOR_SIZE 256
+
 typedef struct {
     char data[256];
 } t_raw_sector;

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "floppy.h"
 #include "track.h"
@@ -9,24 +10,35 @@
 int num_sector_for_track(t_floppy *floppy,int t);
 
 
-void build_floppy(t_floppy *floppy,int num_track,enum e_side side,enum e_density density) {
+void floppy_build(t_floppy *floppy,int num_track,enum e_side side,enum e_density density) {
 
     floppy->num_track = num_track;
     floppy->side = side;
     floppy->density = density;
-
     floppy->tracks = (t_track *)malloc(num_track * sizeof(t_track));
     if (floppy->tracks == NULL) {
         exit(EXIT_FAILURE);
     }
-
+    
     for(int t=0;t<num_track;t++) {
         track_init_sectors(&floppy->tracks[t],num_sector_for_track(floppy,t));
     }
 
 }
 
-void format(t_floppy *floppy,char *label,int number) {
+
+void floppy_release(t_floppy *floppy) {
+
+    t_track *track=floppy->tracks;
+    for (int t=0;t<floppy->num_track;t ++) {
+        free(track->sectors);
+        track++;
+    }
+
+    free(floppy->tracks);
+}
+
+void floppy_format(t_floppy *floppy,char *label,int number) {
 
     t_track *track;
     t_sector *sector;
@@ -71,8 +83,8 @@ void format(t_floppy *floppy,char *label,int number) {
 
     // track 0 / sector 5... = directory
     for (int s=4;s<num_sector_for_track(floppy,0);s++) {
-        unsigned char next_sector=s+1;
-        if (s==num_sector_for_track(floppy,0)) { next_sector=0; }
+        unsigned char next_sector=s+2;
+        if ( s==(num_sector_for_track(floppy,0)-1) ) { next_sector=0; }
         empty_sector(sector);
         sector->dir.next_sector = next_sector; 
         sector++;
@@ -80,13 +92,15 @@ void format(t_floppy *floppy,char *label,int number) {
 
     // track 1... = user data
     for (int t=1;t<floppy->num_track;t ++) {
-        for(int s=1;s<=num_sector_for_track(floppy,t);s ++) {
+        track++;
+        for(int s=0;s<num_sector_for_track(floppy,t);s ++) {
+
             t_sector *sector = &track->sectors[s];
 
             unsigned char next_track=t;
-            unsigned char next_sector=s+1;
+            unsigned char next_sector=s+2;
 
-            if (s==num_sector_for_track(floppy,t)) {
+            if (s==(num_sector_for_track(floppy,t)-1)) {
                 next_track++;
                 next_sector=1;
                 if (t==(floppy->num_track-1)) {
@@ -102,7 +116,6 @@ void format(t_floppy *floppy,char *label,int number) {
     }
 
 
-
     
 }
 
@@ -112,4 +125,17 @@ int num_sector_for_track(t_floppy *floppy,int t) {
         if (t==0) num_sector = TRACK0_SECTORS;
 
         return num_sector*floppy->side;
+}
+
+void floppy_export(t_floppy *floppy,char *filename) {
+
+    FILE *fp = fopen(filename,"wb");
+
+    for (int t=0;t<floppy->num_track;t ++) {
+        t_track *track = &floppy->tracks[t];
+        fwrite(track->sectors,SECTOR_SIZE,track->num_sector,fp);
+    }
+
+    fclose(fp);
+
 }
