@@ -5,14 +5,15 @@
 #include "directory.h"
 
 #define SECTOR_SIZE 256
+#define VOLUME_LABEL_MAXLENGTH 10
 
 typedef struct {
     char data[256];
 } t_raw_sector;
 
 typedef struct {
-    char empty[10];
-    char volume_label[8];
+    char empty[16];
+    char volume_label[11];
     bigendian volume_number;
     unsigned char first_user_track;
     unsigned char first_user_sector;
@@ -24,14 +25,14 @@ typedef struct {
     unsigned char creation_year;
     unsigned char max_track;
     unsigned char max_sector;
-    char empty2[225];
+    char empty2[216];
 } t_sir_sector;
 
 typedef struct {
     unsigned char next_track;
     unsigned char next_sector;
-    char empty[8];
-    t_dir_entry dir[10];
+    char empty[14];
+    t_dir_entry dir[DIR_ENTRY_PER_SECTOR];
 } t_dir_sector;
 
 typedef struct {
@@ -50,5 +51,6 @@ typedef union {
 
 
 void empty_sector(t_sector *sector);
+void sector_dump(t_sector *sector);
 
 #endif

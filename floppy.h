@@ -19,11 +19,14 @@ typedef struct {
 
 
 void floppy_build(t_floppy *floppy,int num_tracks,enum e_side side,enum e_density density);
+void floppy_release(t_floppy *floppy);
 
 void floppy_format(t_floppy *floppy,char *label,int number);
 
 void floppy_export(t_floppy *floppy,char *filename);
+void floppy_import(t_floppy *floppy,char *filename);
 
-void floppy_release(t_floppy *floppy);
+void floppy_info(t_floppy *floppy);
+void floppy_cat(t_floppy *floppy);
 
 #endif

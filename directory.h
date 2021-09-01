@@ -3,8 +3,12 @@
    
 #include "bigendian.h"
 
+#define DIR_ENTRY_PER_SECTOR 10
+
 typedef struct {
     char filename[8];
+    char ext[3];
+    char empty[2];
     unsigned char start_track;
     unsigned char start_sector;
     unsigned char end_track;
@@ -14,6 +18,9 @@ typedef struct {
     unsigned char creation_month;
     unsigned char creation_day;
     unsigned char creation_year;
+    char empty2;
 } t_dir_entry;
+
+void dir_get_filename(t_dir_entry *dir,char *str);
 
 #endif

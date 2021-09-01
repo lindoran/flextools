@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// for stat
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "floppy.h"
 #include "track.h"
 #include "sector.h"
@@ -8,6 +13,7 @@
 
 // private functions
 int num_sector_for_track(t_floppy *floppy,int t);
+int get_floppy_size(t_floppy *floppy);
 
 
 void floppy_build(t_floppy *floppy,int num_track,enum e_side side,enum e_density density) {
@@ -56,7 +62,7 @@ void floppy_format(t_floppy *floppy,char *label,int number) {
     // track 0 / sector 3 = System Information Record
     empty_sector(sector);
 
-    for(int i=0;i<8;i++) {
+    for(int i=0;i<VOLUME_LABEL_MAXLENGTH;i++) {
         if (label[i]==0) break;
         sector->sir.volume_label[i] = label[i];
     }
@@ -130,6 +136,10 @@ int num_sector_for_track(t_floppy *floppy,int t) {
 void floppy_export(t_floppy *floppy,char *filename) {
 
     FILE *fp = fopen(filename,"wb");
+    if (fp == NULL) {
+        perror("cannot open file");
+        exit(EXIT_FAILURE);
+    }
 
     for (int t=0;t<floppy->num_track;t ++) {
         t_track *track = &floppy->tracks[t];
@@ -137,5 +147,86 @@ void floppy_export(t_floppy *floppy,char *filename) {
     }
 
     fclose(fp);
+
+}
+
+void floppy_import(t_floppy *floppy,char *filename) {
+   
+    struct stat sb;
+
+    if (stat(filename,&sb)==-1) {
+        perror("stat");
+        exit(EXIT_FAILURE);
+    }
+
+    int filesize = sb.st_size;
+
+    if (filesize != get_floppy_size(floppy)) {
+        perror("bad size");
+        exit(EXIT_FAILURE);
+    }
+
+    FILE *fp = fopen(filename,"rb");
+    if (fp == NULL) {
+        perror("cannot open file");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int t=0;t<floppy->num_track;t ++) {
+        t_track *track = &floppy->tracks[t];
+        fread(track->sectors,SECTOR_SIZE,track->num_sector,fp);
+    }
+
+    fclose(fp);
+
+
+}
+
+int get_floppy_size(t_floppy *floppy) {
+
+    int size = num_sector_for_track(floppy,0) + num_sector_for_track(floppy,1)*(floppy->num_track-1);
+
+    return size*SECTOR_SIZE;
+}
+
+void floppy_info(t_floppy *floppy) {
+
+    t_sector *sector = &floppy->tracks->sectors[2];
+
+    printf("Volume label  : %s\n",sector->sir.volume_label);
+    printf("Volume number : %d\n",bigendian_get(&sector->sir.volume_number));
+    printf("Creation date : %d/%d/%d\n",sector->sir.creation_day,sector->sir.creation_month,sector->sir.creation_year);
+    printf("Tracks        : %d\n",floppy->num_track);
+    printf("Total sectors : %d\n",bigendian_get(&sector->sir.total_sector));
+    printf("Max track     : %d\n",sector->sir.max_track);
+    printf("Max sector    : %d\n",sector->sir.max_sector);
+
+}
+
+void floppy_cat(t_floppy *floppy) {
+
+    char filename[13];
+
+    t_sector *sector = &floppy->tracks->sectors[4];
+
+    while (sector->dir.next_sector) {
+
+        for(int i=0;i<DIR_ENTRY_PER_SECTOR;i ++) {
+            t_dir_entry *dir = &sector->dir.dir[i];
+
+            if (dir->filename[0]==0) break;
+
+            dir_get_filename(dir,filename);
+
+            printf("%s\t%d\t%d/%d/%d\n",
+                    filename,
+                    bigendian_get(&dir->total_sector),
+                    dir->creation_day, dir->creation_month,dir->creation_year
+                    );
+
+        }
+
+        sector = &floppy->tracks->sectors[sector->dir.next_sector - 1] ;
+    }
 
 }
