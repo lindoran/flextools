@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "floppy.h"
 #include "track.h"
@@ -21,6 +22,8 @@ void floppy_build(t_floppy *floppy,int num_track,enum e_side side,enum e_density
     floppy->num_track = num_track;
     floppy->side = side;
     floppy->density = density;
+    floppy->track0_sectors = TRACK0_SECTORS;
+    floppy->tracks_sectors = density==SINGLE_DENSITY?SD_SECTORS:DD_SECTORS;
     floppy->tracks = (t_track *)malloc(num_track * sizeof(t_track));
     if (floppy->tracks == NULL) {
         exit(EXIT_FAILURE);
@@ -67,15 +70,19 @@ void floppy_format(t_floppy *floppy,char *label,int number) {
         sector->sir.volume_label[i] = label[i];
     }
 
+    // get current date
+    time_t timestamp = time(NULL);
+    struct tm *timeinfo = localtime(&timestamp);
+
     bigendian_set(&sector->sir.volume_number,number);
     sector->sir.first_user_track=1;
     sector->sir.first_user_sector=1;
     sector->sir.last_user_track=floppy->num_track-1;
     sector->sir.last_user_sector=num_sector_for_track(floppy,1);
     bigendian_set(&sector->sir.total_sector,0); 
-    /*unsigned char creation_month;
-    unsigned char creation_day;
-    unsigned char creation_year;*/
+    sector->sir.creation_month = timeinfo->tm_mon+1;
+    sector->sir.creation_day = timeinfo->tm_mday;
+    sector->sir.creation_year = timeinfo->tm_year % 100;
     sector->sir.max_track = sector->sir.last_user_track;
     sector->sir.max_sector = sector->sir.last_user_sector;
 
@@ -127,8 +134,8 @@ void floppy_format(t_floppy *floppy,char *label,int number) {
 
 int num_sector_for_track(t_floppy *floppy,int t) {
 
-        int num_sector = floppy->density==SINGLE_DENSITY?SD_SECTORS:DD_SECTORS;
-        if (t==0) num_sector = TRACK0_SECTORS;
+        int num_sector = floppy->tracks_sectors;
+        if (t==0) num_sector = floppy->track0_sectors;
 
         return num_sector*floppy->side;
 }

@@ -14,6 +14,8 @@ typedef struct {
     int num_track;
     enum e_side side;
     enum e_density density;
+    int track0_sectors;
+    int tracks_sectors;
     t_track *tracks;
 } t_floppy;
 
