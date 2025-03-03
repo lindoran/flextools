@@ -3,6 +3,8 @@
 
 #include "track.h"
 
+#include <string.h>
+
 #define TRACK0_SECTORS 10
 #define SD_SECTORS 10
 #define DD_SECTORS 18
@@ -30,5 +32,7 @@ void floppy_import(t_floppy *floppy,char *filename);
 
 void floppy_info(t_floppy *floppy);
 void floppy_cat(t_floppy *floppy);
+
+void floppy_extract(t_floppy *floppy, char *outdir);
 
 #endif

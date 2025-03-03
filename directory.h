@@ -15,12 +15,14 @@ typedef struct {
     unsigned char end_sector;
     bigendian total_sector;
     char random_file;
+    char empty2;
     unsigned char creation_month;
     unsigned char creation_day;
     unsigned char creation_year;
-    char empty2;
 } t_dir_entry;
 
 void dir_get_filename(t_dir_entry *dir,char *str);
+
+void dir_info(t_dir_entry *dir);
 
 #endif

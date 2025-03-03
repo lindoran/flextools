@@ -237,3 +237,88 @@ void floppy_cat(t_floppy *floppy) {
     }
 
 }
+
+#define OUTFILE_LEN 256
+
+void floppy_extract(t_floppy *floppy, char *outdir) {
+
+    char filename[13];
+    char outfile[OUTFILE_LEN];
+
+    t_sector *sector = &floppy->tracks->sectors[4];
+
+    while (sector->dir.next_sector) {
+
+        for(int i=0;i<DIR_ENTRY_PER_SECTOR;i ++) {
+            t_dir_entry *dir = &sector->dir.dir[i];
+
+            if ((unsigned char)(dir->filename[0])==0xFF) continue; // deleted file
+            if (dir->filename[0]==0) break;
+
+            dir_get_filename(dir,filename);
+
+
+            strncpy(outfile,outdir,OUTFILE_LEN-15);
+            strcat(outfile,"/");
+            strcat(outfile,filename);
+            
+           
+            t_sector *file_sector = &(floppy->tracks[dir->start_track].sectors[dir->start_sector-1]);
+
+            printf("Extract %s ", outfile); 
+
+            FILE *fp;
+            fp = fopen(outfile,"wb");
+
+            unsigned char current_track = dir->start_track;
+            unsigned char current_sector = dir->start_sector;
+
+            int total_sector = 0;
+            
+            for(;;) {
+
+                total_sector ++;
+
+                int sequence = bigendian_get(&file_sector->usr.sequence);
+
+                printf("#%d [%d/%d] ",sequence, current_track,current_sector); 
+
+               fwrite(&file_sector->usr.data,252,1,fp);
+ 
+
+           if ((file_sector->usr.next_track==0) && (file_sector->usr.next_sector==0)) break;
+
+                current_track = file_sector->usr.next_track;
+                current_sector = file_sector->usr.next_sector;
+                file_sector = &(floppy->tracks[current_track].sectors[current_sector-1]);
+            }
+
+            fclose(fp);
+
+            if (current_track != dir->end_track) {
+                printf("Error , end track should be %d (was %d) !\n",dir->end_track,current_track);
+                return;
+            }
+
+            if (current_sector != dir->end_sector) {
+                printf("Error , end sector should be %d (was %d) !\n",dir->end_sector,current_sector);
+                return;
+            }
+
+            int dir_total_sector = bigendian_get(&dir->total_sector);
+            if (total_sector != dir_total_sector) {
+                printf("Error , total sector should be %d (was %d) !\n",dir_total_sector,total_sector);
+                return;
+            }
+
+            printf(" Ok.\n");
+
+
+        }
+
+        sector = &floppy->tracks->sectors[sector->dir.next_sector - 1] ;
+    }
+
+
+
+}
