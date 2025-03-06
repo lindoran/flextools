@@ -27,6 +27,8 @@ void floppy_release(t_floppy *floppy);
 
 void floppy_format(t_floppy *floppy,char *label,int number);
 
+
+int floppy_guess_geometry(t_floppy *floppy,char *filename);
 void floppy_export(t_floppy *floppy,char *filename);
 void floppy_import(t_floppy *floppy,char *filename);
 

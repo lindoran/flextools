@@ -157,6 +157,87 @@ void floppy_export(t_floppy *floppy,char *filename) {
 
 }
 
+
+int floppy_guess_geometry(t_floppy *floppy,char *filename) {
+ 
+    struct stat sb;
+
+    if (stat(filename,&sb)==-1) {
+        perror("stat");
+        exit(EXIT_FAILURE);
+    }
+
+    int filesize = sb.st_size;
+
+    // .dsk file should be a multiple of SECTOR_SIZE
+    if (filesize%SECTOR_SIZE) {
+        fprintf(stderr,"%s filesize (%d) is not a multiple of %d !\n",
+            filename, filesize, SECTOR_SIZE);
+        return 0;
+    }
+
+    int count_sectors = filesize/256;
+
+    // at least 10 sectors
+    if (count_sectors<10) {
+        fprintf(stderr,"%s file is too small !\n",
+            filename);
+        return 0;
+    }
+
+    FILE *fp = fopen(filename,"rb");
+    if (fp == NULL) {
+        perror("cannot open file");
+        exit(EXIT_FAILURE);
+    }
+
+    // find the numbers of sectors on track 0
+    int num_sector0=0;
+    t_sector sector;
+    while(!feof(fp)) {
+        fread(&sector,SECTOR_SIZE,1,fp);
+        num_sector0++;
+        if (num_sector0<5) continue; // directory starts at sector 5
+        if (sector.dir.next_sector==0) break;
+    }
+
+    floppy->track0_sectors = num_sector0;
+    printf("Track 0 has %d sectors.\n",num_sector0);
+
+    if (num_sector0>TRACK0_SECTORS) {
+        floppy->side=DOUBLE_SIDE;
+        printf("Double Sided disk.\n");
+    }
+
+    int num_tracks=0;
+    int num_sectors=0;
+     while(!feof(fp)) {
+        fread(&sector,SECTOR_SIZE,1,fp);
+        if (sector.usr.next_sector>num_sectors) num_sectors=sector.usr.next_sector;
+        if (sector.usr.next_track>num_tracks) num_tracks=sector.usr.next_track;
+    }
+
+    floppy->num_track = num_tracks+1;
+    floppy->tracks_sectors = num_sectors;
+    printf("Disk has %d tracks, %d sectors.\n",num_tracks+1, num_sectors );
+    
+    floppy->density=SD_SECTORS;
+    if (num_sectors>TRACK0_SECTORS) {
+        floppy->density=DD_SECTORS;
+    }
+
+    fclose(fp);
+
+    // allocate tracks memory
+    floppy->tracks = (t_track *)malloc(floppy->num_track * sizeof(t_track));
+
+    for(int t=0;t<floppy->num_track;t++) {
+        track_init_sectors(&floppy->tracks[t],num_sector_for_track(floppy,t));
+    }
+
+    return 1;
+}
+
 void floppy_import(t_floppy *floppy,char *filename) {
    
     struct stat sb;
@@ -191,7 +272,7 @@ void floppy_import(t_floppy *floppy,char *filename) {
 
 int get_floppy_size(t_floppy *floppy) {
 
-    int size = num_sector_for_track(floppy,0) + num_sector_for_track(floppy,1)*(floppy->num_track-1);
+    int size = floppy->track0_sectors + floppy->tracks_sectors*(floppy->num_track-1);
 
     return size*SECTOR_SIZE;
 }
@@ -201,10 +282,10 @@ void floppy_info(t_floppy *floppy) {
     t_sector *sector = &floppy->tracks->sectors[2];
 
     printf("Volume label  : %s\n",sector->sir.volume_label);
-    printf("Volume number : %d\n",bigendian_get(&sector->sir.volume_number));
+    printf("Volume number : %u\n",bigendian_get(&sector->sir.volume_number));
     printf("Creation date : %d/%d/%d\n",sector->sir.creation_day,sector->sir.creation_month,sector->sir.creation_year);
     printf("Tracks        : %d\n",floppy->num_track);
-    printf("Total sectors : %d\n",bigendian_get(&sector->sir.total_sector));
+    printf("Total sectors : %u\n",bigendian_get(&sector->sir.total_sector));
     printf("Max track     : %d\n",sector->sir.max_track);
     printf("Max sector    : %d\n",sector->sir.max_sector);
 
