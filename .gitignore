@@ -1,3 +1,6 @@
 flexfloppy
 *.o
 *.dsk
+*.DSK
+.vscode
+out/*

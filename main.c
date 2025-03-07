@@ -6,29 +6,33 @@
 
 t_floppy floppy;
 
+void usage() {
+    printf("Usage: flexfloppy [disk.dsk]\n");
+    exit(-1);
+}
+
+void do_cat(char *filename) {
+    floppy_guess_geometry(&floppy,filename);
+    floppy_import(&floppy,filename);
+    floppy_info(&floppy);
+    floppy_cat(&floppy);
+    floppy_release(&floppy);
+}
+
 int main(int argc, char *argv[]) {
 
-    if (argc!=2) {
-        printf("Usage: flexfloppy [disk.dsk]\n");
-        return -1;
+    if (argc<2) {
+        usage();
     }
 
     char *filename = argv[1];
 
-    floppy_guess_geometry(&floppy,filename);
-    //floppy_build(&floppy,80,DOUBLE_SIDE,DOUBLE_DENSITY);
-    //floppy_build(&floppy,80,DOUBLE_SIDE,SINGLE_DENSITY);
-    //floppy_format(&floppy,"TEST",1);
-    //floppy_export(&floppy,"test.dsk");
+    if (argc==2) {
+        do_cat(filename);
+        exit(0);
+    }
 
-    floppy_import(&floppy,filename);
+    usage();
 
-
-    floppy_info(&floppy);
-    floppy_cat(&floppy);
-   // floppy_extract(&floppy,"out");
-     printf("OK\n");
-    floppy_release(&floppy);
-
-    exit(0);
+    return 0;
 }

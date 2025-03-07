@@ -22,8 +22,11 @@ typedef struct {
 } t_floppy;
 
 
-void floppy_build(t_floppy *floppy,int num_tracks,enum e_side side,enum e_density density);
+void floppy_allocate(t_floppy *floppy);
 void floppy_release(t_floppy *floppy);
+
+void floppy_build(t_floppy *floppy,int num_tracks,enum e_side side,enum e_density density);
+
 
 void floppy_format(t_floppy *floppy,char *label,int number);
 

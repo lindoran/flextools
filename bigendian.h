@@ -1,8 +1,10 @@
 #ifndef BIGENDIAN_H
 #define BIGENDIAN_H
 
+#include <stdint.h>
+
 typedef struct {
-    char digit[2];
+    uint8_t digit[2];
 } bigendian;
 
 unsigned int bigendian_get(bigendian *b);

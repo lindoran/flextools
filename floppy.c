@@ -17,24 +17,18 @@ int num_sector_for_track(t_floppy *floppy,int t);
 int get_floppy_size(t_floppy *floppy);
 
 
-void floppy_build(t_floppy *floppy,int num_track,enum e_side side,enum e_density density) {
+void floppy_allocate(t_floppy *floppy) {
 
-    floppy->num_track = num_track;
-    floppy->side = side;
-    floppy->density = density;
-    floppy->track0_sectors = TRACK0_SECTORS;
-    floppy->tracks_sectors = density==SINGLE_DENSITY?SD_SECTORS:DD_SECTORS;
-    floppy->tracks = (t_track *)malloc(num_track * sizeof(t_track));
+    floppy->tracks = (t_track *)malloc(floppy->num_track * sizeof(t_track));
     if (floppy->tracks == NULL) {
         exit(EXIT_FAILURE);
     }
     
-    for(int t=0;t<num_track;t++) {
+    for(int t=0;t<floppy->num_track;t++) {
         track_init_sectors(&floppy->tracks[t],num_sector_for_track(floppy,t));
     }
 
 }
-
 
 void floppy_release(t_floppy *floppy) {
 
@@ -46,6 +40,19 @@ void floppy_release(t_floppy *floppy) {
 
     free(floppy->tracks);
 }
+
+void floppy_build(t_floppy *floppy,int num_track,enum e_side side,enum e_density density) {
+
+    floppy->num_track = num_track;
+    floppy->side = side;
+    floppy->density = density;
+    floppy->track0_sectors = TRACK0_SECTORS;
+    floppy->tracks_sectors = density==SINGLE_DENSITY?SD_SECTORS:DD_SECTORS;
+    
+    floppy_allocate(floppy);
+
+}
+
 
 void floppy_format(t_floppy *floppy,char *label,int number) {
 
@@ -197,43 +204,38 @@ int floppy_guess_geometry(t_floppy *floppy,char *filename) {
     while(!feof(fp)) {
         fread(&sector,SECTOR_SIZE,1,fp);
         num_sector0++;
+        
+        // SIR ?
+        if (num_sector0==3) {
+            floppy->num_track = sector.sir.max_track+1;
+            floppy->tracks_sectors = sector.sir.max_sector;
+            continue;
+        }
+
         if (num_sector0<5) continue; // directory starts at sector 5
         if (sector.dir.next_sector==0) break;
     }
 
     floppy->track0_sectors = num_sector0;
-    printf("Track 0 has %d sectors.\n",num_sector0);
 
+    floppy->side=SINGLE_SIDE;
     if (num_sector0>TRACK0_SECTORS) {
         floppy->side=DOUBLE_SIDE;
-        printf("Double Sided disk.\n");
     }
 
-    int num_tracks=0;
-    int num_sectors=0;
-     while(!feof(fp)) {
-        fread(&sector,SECTOR_SIZE,1,fp);
-        if (sector.usr.next_sector>num_sectors) num_sectors=sector.usr.next_sector;
-        if (sector.usr.next_track>num_tracks) num_tracks=sector.usr.next_track;
-    }
+    printf("Disk has %d tracks, %d sectors",floppy->num_track, floppy->tracks_sectors );
 
-    floppy->num_track = num_tracks+1;
-    floppy->tracks_sectors = num_sectors;
-    printf("Disk has %d tracks, %d sectors.\n",num_tracks+1, num_sectors );
-    
     floppy->density=SD_SECTORS;
-    if (num_sectors>TRACK0_SECTORS) {
+    if (num_sector0 != floppy->tracks_sectors) {
         floppy->density=DD_SECTORS;
+        printf(", track 0 has %d sectors",num_sector0);
     }
+
+    printf(".\n\n");
 
     fclose(fp);
 
-    // allocate tracks memory
-    floppy->tracks = (t_track *)malloc(floppy->num_track * sizeof(t_track));
-
-    for(int t=0;t<floppy->num_track;t++) {
-        track_init_sectors(&floppy->tracks[t],num_sector_for_track(floppy,t));
-    }
+    floppy_allocate(floppy);
 
     return 1;
 }
@@ -285,9 +287,10 @@ void floppy_info(t_floppy *floppy) {
     printf("Volume number : %u\n",bigendian_get(&sector->sir.volume_number));
     printf("Creation date : %d/%d/%d\n",sector->sir.creation_day,sector->sir.creation_month,sector->sir.creation_year);
     printf("Tracks        : %d\n",floppy->num_track);
-    printf("Total sectors : %u\n",bigendian_get(&sector->sir.total_sector));
+    printf("Free sectors  : %u\n",bigendian_get(&sector->sir.total_sector));
     printf("Max track     : %d\n",sector->sir.max_track);
     printf("Max sector    : %d\n",sector->sir.max_sector);
+    printf("\n");
 
 }
 
@@ -295,27 +298,44 @@ void floppy_cat(t_floppy *floppy) {
 
     char filename[13];
 
+    printf("FILENAME EXT  SECTORS\tDATE\t TRACK,SECTOR\n");
+    printf("---------------------------------------------\n");
+
     t_sector *sector = &floppy->tracks->sectors[4];
+    int num_sectors = 0;
 
     while (sector->dir.next_sector) {
 
         for(int i=0;i<DIR_ENTRY_PER_SECTOR;i ++) {
+
             t_dir_entry *dir = &sector->dir.dir[i];
 
+            // deleted file
+            if ((uint8_t)(dir->filename[0])==0xff) continue;
+
+            // end of directory
             if (dir->filename[0]==0) break;
 
-            dir_get_filename(dir,filename);
+            dir_get_filename_pretty(dir,filename);
+            unsigned int file_sectors = bigendian_get(&dir->total_sector);
 
-            printf("%s\t%d\t%d/%d/%d\n",
+            printf("%s\t  % 3d\t%02d/%02d/%02d\t%02d,%02d\n",
                     filename,
-                    bigendian_get(&dir->total_sector),
-                    dir->creation_day, dir->creation_month,dir->creation_year
+                    file_sectors,
+                    dir->creation_day, dir->creation_month,dir->creation_year,
+                    dir->start_track,dir->start_sector
                     );
 
+            num_sectors += file_sectors;
+   
         }
 
         sector = &floppy->tracks->sectors[sector->dir.next_sector - 1] ;
     }
+
+    printf("---------------------------------------------\n");
+    printf("USED SECTORS\t % 3d\n", 
+        num_sectors );
 
 }
 

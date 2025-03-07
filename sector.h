@@ -4,6 +4,8 @@
 #include "bigendian.h"
 #include "directory.h"
 
+#include <stdint.h>
+
 #define SECTOR_SIZE 256
 #define VOLUME_LABEL_MAXLENGTH 10
 
@@ -15,31 +17,31 @@ typedef struct {
     char empty[16];
     char volume_label[11];
     bigendian volume_number;
-    unsigned char first_user_track;
-    unsigned char first_user_sector;
-    unsigned char last_user_track;
-    unsigned char last_user_sector;
+    uint8_t first_user_track;
+    uint8_t first_user_sector;
+    uint8_t last_user_track;
+    uint8_t last_user_sector;
     bigendian total_sector;
-    unsigned char creation_month;
-    unsigned char creation_day;
-    unsigned char creation_year;
-    unsigned char max_track;
-    unsigned char max_sector;
-    char empty2[216];
+    uint8_t creation_month;
+    uint8_t creation_day;
+    uint8_t creation_year;
+    uint8_t max_track;
+    uint8_t max_sector;
+    uint8_t empty2[216];
 } t_sir_sector;
 
 typedef struct {
-    unsigned char next_track;
-    unsigned char next_sector;
-    char empty[14];
+    uint8_t next_track;
+    uint8_t next_sector;
+    uint8_t empty[14];
     t_dir_entry dir[DIR_ENTRY_PER_SECTOR];
 } t_dir_sector;
 
 typedef struct {
-    unsigned char next_track;
-    unsigned char next_sector;
+    uint8_t next_track;
+    uint8_t next_sector;
     bigendian sequence;
-    char data[252];
+    uint8_t data[252];
 } t_usr_sector;
 
 typedef union {

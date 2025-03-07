@@ -1,23 +1,30 @@
 #include "directory.h"
 
 #include <stdio.h>
+#include <string.h>
 
 void dir_get_filename(t_dir_entry *dir,char *str) {
 
-    for(int i=0;i<8;i ++) {
-        if (dir->filename[i]==0) break;
-        *str++=dir->filename[i];
-    }
+    memset(str,0,13);
 
-    *str++='.';
+    strncpy(str,dir->filename,8);
+    strcat(str,".");
+    strncat(str,dir->ext,3);
 
-    for(int i=0;i<3;i ++) {
-        if (dir->ext[i]==0) break;
-        *str++=dir->ext[i];
-    }
-
-    *str='\0';
 }
+
+void dir_get_filename_pretty(t_dir_entry *dir,char *str) {
+
+    memset(str,' ',13);
+    *(str+13)='\0';
+
+    memcpy(str,dir->filename,8);
+    for(int i=0;i<8;i++) 
+        if ( *(str+i) == '\0' ) *(str+i)=' ';
+    strncpy(str+9,dir->ext,3);
+
+}
+
 
 void dir_info(t_dir_entry *dir) {
 
