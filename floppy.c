@@ -155,6 +155,7 @@ void floppy_export(t_floppy *floppy,char *filename) {
         exit(EXIT_FAILURE);
     }
 
+    // TODO : track 0 must have the same size as other tracks
     for (int t=0;t<floppy->num_track;t ++) {
         t_track *track = &floppy->tracks[t];
         fwrite(track->sectors,SECTOR_SIZE,track->num_sector,fp);
@@ -280,9 +281,12 @@ void floppy_import(t_floppy *floppy,char *filename) {
 
 }
 
+// NOTE :   in the .dsk file format, if track 0 is smaller than other tracks, empty
+//          sectors are added to track 0 so all tracks have the same size
+//          ( example : DSTAR.DSK )
 int get_floppy_size(t_floppy *floppy) {
 
-    int size = floppy->track0_sectors + floppy->tracks_sectors*(floppy->num_track-1);
+    int size = floppy->tracks_sectors*floppy->num_track;
 
     return size*SECTOR_SIZE;
 }
