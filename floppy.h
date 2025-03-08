@@ -13,11 +13,11 @@ enum e_side { SINGLE_SIDE=1,DOUBLE_SIDE };
 enum e_density {SINGLE_DENSITY=1,DOUBLE_DENSITY };
 
 typedef struct {
-    int num_track;
-    enum e_side side;
-    enum e_density density;
-    int track0_sectors;
-    int tracks_sectors;
+    int num_track;              // number of tracks on floppy
+    enum e_side side;           // single or double sided floppy
+    enum e_density density;     // single density (FM encoding) or double density (MFM encoding)
+    int track0_sectors;         // number of sectors on track 0 (adding both sides)
+    int tracks_sectors;         // number of sectors on other tracks (adding both sides)
     t_track *tracks;
 } t_floppy;
 

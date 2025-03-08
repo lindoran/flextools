@@ -4,8 +4,8 @@
 #include "sector.h"
 
 typedef struct {
-    int num_sector;
-    t_sector *sectors;
+    int num_sector;             // number of sectors (adding both sides)
+    t_sector *sectors;          
 } t_track;
 
 

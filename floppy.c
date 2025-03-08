@@ -93,14 +93,11 @@ void floppy_format(t_floppy *floppy,char *label,int number) {
     sector->sir.max_track = sector->sir.last_user_track;
     sector->sir.max_sector = sector->sir.last_user_sector;
 
-    
-
     sector++;
 
     // track 0 / sector 4 = empty
     empty_sector(sector++);
     
-
     // track 0 / sector 5... = directory
     for (int s=4;s<num_sector_for_track(floppy,0);s++) {
         unsigned char next_sector=s+2;
