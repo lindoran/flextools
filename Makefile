@@ -1,6 +1,6 @@
 EXEC = flexfloppy
 CC = gcc
-CFLAGS   = -std=gnu11 -O3 -Wall -Wextra -Wpedantic -Wstrict-aliasing
+CFLAGS   = -std=gnu11 -O2 -Wall -Wextra -Wpedantic -Wstrict-aliasing
 LDFLAGS  =
 
 SRC      = $(wildcard *.c)
@@ -11,7 +11,7 @@ all: $(EXEC)
 ${EXEC}: $(OBJ)
 		$(CC) -o $@ $^ $(LDFLAGS)
 
-%.o: %.c
+%.o: %.c %.h
 		$(CC) -o $@ -c $< $(CFLAGS)
 
 .PHONY: clean mrproper

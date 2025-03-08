@@ -202,7 +202,11 @@ int floppy_guess_geometry(t_floppy *floppy,char *filename) {
     int num_sector0=0;
     t_sector sector;
     while(!feof(fp)) {
-        fread(&sector,SECTOR_SIZE,1,fp);
+        int num_read = fread(&sector,SECTOR_SIZE,1,fp);
+        if (num_read!=1) {
+            fprintf(stderr,"%s: Read error !\n",filename);
+            exit(-2);
+        }
         num_sector0++;
         
         // SIR ?
@@ -264,7 +268,11 @@ void floppy_import(t_floppy *floppy,char *filename) {
 
     for (int t=0;t<floppy->num_track;t ++) {
         t_track *track = &floppy->tracks[t];
-        fread(track->sectors,SECTOR_SIZE,track->num_sector,fp);
+        int num_read = fread(track->sectors,SECTOR_SIZE,track->num_sector,fp);
+        if (num_read!=track->num_sector) {
+            fprintf(stderr,"%s: Read error !\n",filename);
+            exit(-2);
+        }
     }
 
     fclose(fp);
