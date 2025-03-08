@@ -388,9 +388,10 @@ void floppy_extract(t_floppy *floppy, char *outdir) {
 
                 total_sector ++;
 
-                int sequence = bigendian_get(&file_sector->usr.sequence);
+                //int sequence = bigendian_get(&file_sector->usr.sequence);
 
-                printf("#%d [%d/%d] ",sequence, current_track,current_sector); 
+                //printf("#%d [%d/%d] ",sequence, current_track,current_sector); 
+                printf(".");
 
                fwrite(&file_sector->usr.data,252,1,fp);
  
