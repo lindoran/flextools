@@ -159,6 +159,14 @@ void floppy_export(t_floppy *floppy,char *filename) {
     for (int t=0;t<floppy->num_track;t ++) {
         t_track *track = &floppy->tracks[t];
         fwrite(track->sectors,SECTOR_SIZE,track->num_sector,fp);
+
+        // special case if track 0 has different size : add some empty sectors
+        // so that all tracks have the same length in the .dsk file
+        if ( (t==0) && (floppy->track0_sectors < floppy->tracks_sectors) ) {
+            for(int i=0; i<SECTOR_SIZE*(floppy->tracks_sectors - floppy->track0_sectors) ; i ++ )
+                fputc(0,fp);
+        }
+
     }
 
     fclose(fp);
@@ -269,11 +277,24 @@ void floppy_import(t_floppy *floppy,char *filename) {
 
     for (int t=0;t<floppy->num_track;t ++) {
         t_track *track = &floppy->tracks[t];
+
         int num_read = fread(track->sectors,SECTOR_SIZE,track->num_sector,fp);
-        if (num_read!=track->num_sector) {
+         if (num_read!=track->num_sector) {
             fprintf(stderr,"%s: Read error !\n",filename);
             exit(-2);
         }
+        
+        // special case if track 0 has less sectors than other tracks :
+        // in the .dsk file all tracks have the same length, so we have to seek
+        // the sector difference
+        if ( (t==0) && (floppy->track0_sectors < floppy->tracks_sectors) ) {
+            int err = fseek(fp, SECTOR_SIZE*(floppy->tracks_sectors - floppy->track0_sectors), SEEK_CUR);
+            if (err) {
+                fprintf(stderr,"%s: Read error !\n",filename);
+                exit(-2);
+            }
+        }
+              
     }
 
     fclose(fp);
