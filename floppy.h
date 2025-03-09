@@ -9,6 +9,8 @@
 #define SD_SECTORS 10
 #define DD_SECTORS 18
 
+#define OUTFILE_LEN 256
+
 enum e_side { SINGLE_SIDE=1,DOUBLE_SIDE };
 enum e_density {SINGLE_DENSITY=1,DOUBLE_DENSITY };
 

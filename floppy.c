@@ -17,7 +17,12 @@ int num_sector_for_track(t_floppy *floppy,int t);
 int get_floppy_size(t_floppy *floppy);
 t_dir_entry *find_file(t_floppy *floppy, char *filename) ;
 
-
+/**
+ * @brief allocate memory for a t_floppy variable. num_track, track0_sectors & 
+ *        tracks_sectors must have a value
+ * 
+ * @param floppy 
+ */
 void floppy_allocate(t_floppy *floppy) {
 
     floppy->tracks = (t_track *)malloc(floppy->num_track * sizeof(t_track));
@@ -31,6 +36,11 @@ void floppy_allocate(t_floppy *floppy) {
 
 }
 
+/**
+ * @brief free memory for a t_floppy variable
+ * 
+ * @param floppy 
+ */
 void floppy_release(t_floppy *floppy) {
 
     t_track *track=floppy->tracks;
@@ -54,7 +64,13 @@ void floppy_build(t_floppy *floppy,int num_track,enum e_side side,enum e_density
 
 }
 
-
+/**
+ * @brief create an empty disk structure
+ * 
+ * @param floppy 
+ * @param label , max 10 characters
+ * @param number , disk id between 0 and 65536
+ */
 void floppy_format(t_floppy *floppy,char *label,int number) {
 
     t_track *track;
@@ -137,6 +153,12 @@ void floppy_format(t_floppy *floppy,char *label,int number) {
     
 }
 
+/**
+ * @brief export a .dsk file 
+ * 
+ * @param floppy 
+ * @param filename 
+ */
 void floppy_export(t_floppy *floppy,char *filename) {
 
     FILE *fp = fopen(filename,"wb");
@@ -163,7 +185,13 @@ void floppy_export(t_floppy *floppy,char *filename) {
 
 }
 
-
+/**
+ * @brief find disk geometry
+ * 
+ * @param floppy 
+ * @param filename 
+ * @return int 
+ */
 int floppy_guess_geometry(t_floppy *floppy,char *filename) {
  
     struct stat sb;
@@ -243,6 +271,13 @@ int floppy_guess_geometry(t_floppy *floppy,char *filename) {
     return 1;
 }
 
+/**
+ * @brief read a .dsk file and put data inti the t_floppy struct.
+ *        the t_floppy struct memory must be already allocated.
+ * 
+ * @param floppy 
+ * @param filename 
+ */
 void floppy_import(t_floppy *floppy,char *filename) {
    
     struct stat sb;
@@ -292,6 +327,11 @@ void floppy_import(t_floppy *floppy,char *filename) {
 
 }
 
+/**
+ * @brief display on screen general infos about the disk
+ * 
+ * @param floppy 
+ */
 void floppy_info(t_floppy *floppy) {
 
     t_sector *sector = &floppy->tracks->sectors[2];
@@ -307,6 +347,11 @@ void floppy_info(t_floppy *floppy) {
 
 }
 
+/**
+ * @brief display on screen the content of the directory
+ * 
+ * @param floppy 
+ */
 void floppy_cat(t_floppy *floppy) {
 
     char filename[13];
@@ -353,8 +398,13 @@ void floppy_cat(t_floppy *floppy) {
 
 }
 
-#define OUTFILE_LEN 256
 
+/**
+ * @brief extract data from a t_floppy struct and put the files into outdir directory
+ * 
+ * @param floppy 
+ * @param outdir 
+ */
 void floppy_extract(t_floppy *floppy, char *outdir) {
 
     char filename[13];
@@ -438,7 +488,12 @@ void floppy_extract(t_floppy *floppy, char *outdir) {
 
 }
 
-
+/**
+ * @brief add the file 'filename' from the host system to the t_floppy struct
+ * 
+ * @param floppy 
+ * @param filename 
+ */
 void floppy_add_file(t_floppy *floppy, char *filename) {
 
     t_sector *sir = &floppy->tracks->sectors[2];
