@@ -25,6 +25,10 @@ typedef struct {
 
 
 void dir_get_filename(t_dir_entry *dir,char *str);
+int dir_set_filename(t_dir_entry *dir,char *str);
+
+void dir_set_current_date(t_dir_entry *dir);
+
 void dir_get_filename_pretty(t_dir_entry *dir,char *str);
 
 void dir_info(t_dir_entry *dir);

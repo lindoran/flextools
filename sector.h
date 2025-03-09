@@ -8,6 +8,7 @@
 
 #define SECTOR_SIZE 256
 #define VOLUME_LABEL_MAXLENGTH 10
+#define SECTOR_USR_DATA_LENGTH 252
 
 typedef struct {
     char data[256];
@@ -21,7 +22,7 @@ typedef struct {
     uint8_t first_user_sector;
     uint8_t last_user_track;
     uint8_t last_user_sector;
-    bigendian total_sector;
+    bigendian total_sector;         // total free sectors
     uint8_t creation_month;
     uint8_t creation_day;
     uint8_t creation_year;
@@ -41,7 +42,7 @@ typedef struct {
     uint8_t next_track;
     uint8_t next_sector;
     bigendian sequence;
-    uint8_t data[252];
+    uint8_t data[SECTOR_USR_DATA_LENGTH];
 } t_usr_sector;
 
 typedef union {

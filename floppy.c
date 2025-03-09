@@ -86,7 +86,7 @@ void floppy_format(t_floppy *floppy,char *label,int number) {
     sector->sir.first_user_sector=1;
     sector->sir.last_user_track=floppy->num_track-1;
     sector->sir.last_user_sector=num_sector_for_track(floppy,1);
-    bigendian_set(&sector->sir.total_sector,0); 
+    bigendian_set(&sector->sir.total_sector, sector->sir.last_user_track * sector->sir.last_user_sector ); 
     sector->sir.creation_month = timeinfo->tm_mon+1;
     sector->sir.creation_day = timeinfo->tm_mday;
     sector->sir.creation_year = timeinfo->tm_year % 100;
@@ -141,7 +141,7 @@ int num_sector_for_track(t_floppy *floppy,int t) {
         int num_sector = floppy->tracks_sectors;
         if (t==0) num_sector = floppy->track0_sectors;
 
-        return num_sector*floppy->side;
+        return num_sector;
 }
 
 void floppy_export(t_floppy *floppy,char *filename) {
@@ -228,7 +228,7 @@ int floppy_guess_geometry(t_floppy *floppy,char *filename) {
 
     floppy->track0_sectors = num_sector0;
 
-    floppy->side=SINGLE_SIDE;
+    floppy->side=SINGLE_SIDE; 
     if (num_sector0>TRACK0_SECTORS) {
         floppy->side=DOUBLE_SIDE;
     }
@@ -276,8 +276,8 @@ void floppy_import(t_floppy *floppy,char *filename) {
         t_track *track = &floppy->tracks[t];
 
         int num_read = fread(track->sectors,SECTOR_SIZE,track->num_sector,fp);
-         if (num_read!=track->num_sector) {
-            fprintf(stderr,"%s: Read error !\n",filename);
+         if (num_read!=track->num_sector) { printf("track=%d, num_read=%d / %d \n",t,num_read, track->num_sector);
+            fprintf(stderr,"%s: !\n",filename);
             exit(-2);
         }
         
@@ -451,6 +451,101 @@ void floppy_extract(t_floppy *floppy, char *outdir) {
         sector = &floppy->tracks->sectors[sector->dir.next_sector - 1] ;
     }
 
+}
 
+
+void floppy_add_file(t_floppy *floppy, char *filename) {
+
+     t_sector *sir = &floppy->tracks->sectors[2];
+
+    t_sector *sector = &floppy->tracks->sectors[4];
+    t_dir_entry *dir;
+
+    // find a free dir entry
+    while (sector->dir.next_sector) {
+        for(int i=0;i<DIR_ENTRY_PER_SECTOR;i ++) {
+            dir = &sector->dir.dir[i];
+            if ( ((unsigned char)(dir->filename[0])==0xFF) || (dir->filename[0]==0)) goto found_dir;
+        }
+    }
+
+    // no entry found
+    fprintf(stderr,"No dir entry available on this floppy.\n");
+    exit(-3);
+
+    found_dir: ;
+
+    //create dir entry
+    int success = dir_set_filename(dir,filename);
+    if (!success) {
+        fprintf(stderr,"Cannot set filaname %s\n",filename);
+        exit(-3);
+    }
+
+    dir_set_current_date(dir);
+
+    dir->random_file = 0;
+    dir->start_track = sir->sir.first_user_track;
+    dir->start_sector = sir->sir.first_user_sector;
+
+    // add file content to sectors
+    FILE *fp;
+    fp = fopen(filename,"rb");
+    if (!fp) {
+        fprintf(stderr,"Cannot read %s\n",filename);
+        exit(-3);
+    }
+
+    int num_sectors=0;
+    int current_sector = dir->start_sector;
+    int current_track = dir->start_track;
+    sector = &floppy->tracks[current_track].sectors[current_sector-1];
+
+    while(!feof(fp)) {
+
+        num_sectors ++;
+        bigendian_set(&sector->usr.sequence,num_sectors);
+
+        memset(sector->usr.data,0,SECTOR_USR_DATA_LENGTH);
+        int read_count = fread(sector->usr.data,1,SECTOR_USR_DATA_LENGTH,fp);
+
+        if (read_count<SECTOR_USR_DATA_LENGTH) break; // file is 100% read
+
+        current_track = sector->usr.next_track;
+        current_sector = sector->usr.next_sector;
+
+        if (!current_track && !current_sector) {
+            fprintf(stderr,"Disk full !\n");
+            exit(-3);
+        }
+
+        sector = &floppy->tracks[current_track].sectors[current_sector-1];
+    }
+
+    fclose(fp);
+
+    // update dir entry
+    dir->end_track = current_track;
+    dir->end_sector = current_sector;
+    bigendian_set(&dir->total_sector,num_sectors);
+
+    // update SIR free list with next available sector
+    // TODO : check if this was the last available sector ?
+    sir->sir.first_user_track = sector->usr.next_track;
+    sir->sir.first_user_sector = sector->usr.next_sector;
+
+    // update last file sector pointers
+    sector->usr.next_track=0;
+    sector->usr.next_sector=0;
+
+    // update total sectors
+    int total_sector = bigendian_get(&sir->sir.total_sector);
+    total_sector -=num_sectors;
+    bigendian_set(&sir->sir.total_sector,total_sector);
+
+    char local_filename[13];
+    dir_get_filename(dir,local_filename);
+    printf("%s added to floppy. %d sectors free.\n",
+        local_filename, total_sector);
 
 }

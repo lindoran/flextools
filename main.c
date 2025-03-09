@@ -10,7 +10,8 @@ t_floppy floppy;
 int new_flag=0;
 int cat_flag=0;
 int extract_flag=0;
-char *infile=NULL,*outfile=NULL,*path=NULL;
+int add_flag=0;
+char *infile=NULL,*outfile=NULL,*path=NULL, *filename=NULL;
 char floppy_label[12];
 int floppy_number=0;
 int num_tracks=0,num_sectors=0;
@@ -20,13 +21,13 @@ void usage() {
     printf("flexfloppy --in <disk.dsk> --cat\n"); 
     printf("flexfloppy --in <disk.dsk> --extract <path>\n");
     printf("flexfloppy --new --tracks <num_tracks> --sectors <num_sectors> [--label <label>] [--number <number>] --out <disk.dsk>\n");
-
+    printf("flexfloppy --in <disk.dsk> --add <filename>\n");
     exit(-1);
 }
 
 void do_cat(char *filename) {
-    floppy_guess_geometry(&floppy,filename);
-    floppy_import(&floppy,filename);
+    floppy_guess_geometry(&floppy,filename); 
+    floppy_import(&floppy,filename); 
     floppy_info(&floppy);
     floppy_cat(&floppy);
     floppy_release(&floppy);
@@ -53,6 +54,14 @@ void do_new(char *filename, int tracks, int sectors, char *label, int number) {
     printf("OK\n");
 }
 
+void do_add(char *infile,char *filename) {
+    floppy_guess_geometry(&floppy,infile); 
+    floppy_import(&floppy,infile); 
+    floppy_add_file(&floppy,filename);
+    floppy_export(&floppy,infile);
+    floppy_release(&floppy);
+}
+
 int main(int argc, char *argv[]) {
 
     int c;
@@ -69,12 +78,13 @@ int main(int argc, char *argv[]) {
             {"sectors", required_argument,0,'s'},
             {"label", required_argument,0,'l'},
             {"number", required_argument,0,'u'},
+            {"add", required_argument,0,'a'},
             {0,0,0,0}
         };
 
         int option_index=0;
 
-        c = getopt_long (argc, argv, "cni:o:u:d:e:",
+        c = getopt_long (argc, argv, "cni:o:e:t:s:l:u:a:",
                        long_options, &option_index);
 
         if (c==-1) break;
@@ -118,6 +128,11 @@ int main(int argc, char *argv[]) {
                 floppy_number=atoi(optarg);
                 break;
 
+            case 'a':
+                add_flag = 1;
+                filename = optarg;
+                break;
+
             default:
                 usage();
         }
@@ -139,6 +154,12 @@ int main(int argc, char *argv[]) {
     // NEW
     if ( (outfile !=NULL) && (num_tracks>0) && (num_sectors>0) && new_flag ) {
         do_new(outfile,num_tracks,num_sectors,floppy_label,floppy_number);
+        return 0;
+    }
+
+    // ADD
+    if ( (infile != NULL) && (filename !=NULL) && add_flag) {
+        do_add(infile,filename);
         return 0;
     }
 
