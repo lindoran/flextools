@@ -15,6 +15,7 @@
 // private functions
 int num_sector_for_track(t_floppy *floppy,int t);
 int get_floppy_size(t_floppy *floppy);
+t_dir_entry *find_file(t_floppy *floppy, char *filename) ;
 
 
 void floppy_allocate(t_floppy *floppy) {
@@ -134,14 +135,6 @@ void floppy_format(t_floppy *floppy,char *label,int number) {
 
 
     
-}
-
-int num_sector_for_track(t_floppy *floppy,int t) {
-
-        int num_sector = floppy->tracks_sectors;
-        if (t==0) num_sector = floppy->track0_sectors;
-
-        return num_sector;
 }
 
 void floppy_export(t_floppy *floppy,char *filename) {
@@ -299,16 +292,6 @@ void floppy_import(t_floppy *floppy,char *filename) {
 
 }
 
-// NOTE :   in the .dsk file format, if track 0 is smaller than other tracks, empty
-//          sectors are added to track 0 so all tracks have the same size
-//          ( example : DSTAR.DSK )
-int get_floppy_size(t_floppy *floppy) {
-
-    int size = floppy->tracks_sectors*floppy->num_track;
-
-    return size*SECTOR_SIZE;
-}
-
 void floppy_info(t_floppy *floppy) {
 
     t_sector *sector = &floppy->tracks->sectors[2];
@@ -334,7 +317,7 @@ void floppy_cat(t_floppy *floppy) {
     t_sector *sector = &floppy->tracks->sectors[4];
     int num_sectors = 0;
 
-    while (sector->dir.next_sector) {
+    for(;;) {
 
         for(int i=0;i<DIR_ENTRY_PER_SECTOR;i ++) {
 
@@ -360,6 +343,7 @@ void floppy_cat(t_floppy *floppy) {
    
         }
 
+        if (!sector->dir.next_sector) break;
         sector = &floppy->tracks->sectors[sector->dir.next_sector - 1] ;
     }
 
@@ -378,7 +362,7 @@ void floppy_extract(t_floppy *floppy, char *outdir) {
 
     t_sector *sector = &floppy->tracks->sectors[4];
 
-    while (sector->dir.next_sector) {
+    for(;;) {
 
         for(int i=0;i<DIR_ENTRY_PER_SECTOR;i ++) {
             t_dir_entry *dir = &sector->dir.dir[i];
@@ -448,6 +432,7 @@ void floppy_extract(t_floppy *floppy, char *outdir) {
 
         }
 
+        if (!sector->dir.next_sector) break;
         sector = &floppy->tracks->sectors[sector->dir.next_sector - 1] ;
     }
 
@@ -456,17 +441,33 @@ void floppy_extract(t_floppy *floppy, char *outdir) {
 
 void floppy_add_file(t_floppy *floppy, char *filename) {
 
-     t_sector *sir = &floppy->tracks->sectors[2];
+    t_sector *sir = &floppy->tracks->sectors[2];
 
     t_sector *sector = &floppy->tracks->sectors[4];
     t_dir_entry *dir;
 
+    // get rid of path
+    char *base_filename = strrchr(filename,'/');
+    if (base_filename==NULL) 
+        base_filename=filename;
+    else
+        base_filename++;
+
+    // check if the directory already exists
+    dir = find_file(floppy,base_filename);
+    if (dir) {
+        fprintf(stderr,"%s already exists !\n", base_filename);
+        exit(-1);
+    }
+
     // find a free dir entry
-    while (sector->dir.next_sector) {
+    for(;;) {
         for(int i=0;i<DIR_ENTRY_PER_SECTOR;i ++) {
             dir = &sector->dir.dir[i];
             if ( ((unsigned char)(dir->filename[0])==0xFF) || (dir->filename[0]==0)) goto found_dir;
         }
+        if (!sector->dir.next_sector) break;
+        sector = &floppy->tracks->sectors[sector->dir.next_sector -1];
     }
 
     // no entry found
@@ -476,9 +477,9 @@ void floppy_add_file(t_floppy *floppy, char *filename) {
     found_dir: ;
 
     //create dir entry
-    int success = dir_set_filename(dir,filename);
+    int success = dir_set_filename(dir,base_filename);
     if (!success) {
-        fprintf(stderr,"Cannot set filaname %s\n",filename);
+        fprintf(stderr,"Cannot set filename %s\n",base_filename);
         exit(-3);
     }
 
@@ -548,4 +549,51 @@ void floppy_add_file(t_floppy *floppy, char *filename) {
     printf("%s added to floppy. %d sectors free.\n",
         local_filename, total_sector);
 
+}
+
+/****************************************************************************/
+/* Private functions                                                        */
+/****************************************************************************/
+
+int num_sector_for_track(t_floppy *floppy,int t) {
+
+        int num_sector = floppy->tracks_sectors;
+        if (t==0) num_sector = floppy->track0_sectors;
+
+        return num_sector;
+}
+
+// NOTE :   in the .dsk file format, if track 0 is smaller than other tracks, empty
+//          sectors are added to track 0 so all tracks have the same size
+//          ( example : DSTAR.DSK )
+int get_floppy_size(t_floppy *floppy) {
+
+    int size = floppy->tracks_sectors*floppy->num_track;
+
+    return size*SECTOR_SIZE;
+}
+
+
+t_dir_entry *find_file(t_floppy *floppy,char *filename) {
+
+    t_sector *sector = &floppy->tracks->sectors[4];
+    t_dir_entry *dir;
+    char dir_filename[13];
+
+    // browse dir entries
+    for(;;) {
+        for(int i=0;i<DIR_ENTRY_PER_SECTOR;i ++) {
+            dir = &sector->dir.dir[i];
+            if ( (unsigned char)(dir->filename[0])==0xFF) continue; // deleted file
+            if ( dir->filename[0] == 0) return NULL; // end of directory, file not found
+            
+            dir_get_filename(dir,dir_filename);
+            if (!strncmp(filename,dir_filename,13)) return dir; // file found
+
+        }
+        if (!sector->dir.next_sector) break;
+        sector = &floppy->tracks->sectors[sector->dir.next_sector -1];
+    }
+
+    return NULL;
 }

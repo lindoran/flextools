@@ -28,19 +28,12 @@ void dir_get_filename_pretty(t_dir_entry *dir,char *str) {
 
 int dir_set_filename(t_dir_entry *dir, char *str) {
     
-    // get rid of path
-    char *begin = strrchr(str,'/');
-    if (begin==NULL) 
-        begin=str;
-    else
-        begin++;
-
-    // find DOT
-    char *dot = strchr(begin,'.');
+    // find dot separator
+    char *dot = strchr(str,'.');
     if (dot==NULL) return 0;
 
     // filename should be max. 8 characters
-    if ((dot-begin-1)>8) return 0;
+    if ((dot-str-1)>8) return 0;
 
     // extension should be max. 3 characters
     if ((strlen(dot)-1)>3) return 0;
@@ -50,9 +43,9 @@ int dir_set_filename(t_dir_entry *dir, char *str) {
     memset(dir->ext,'\0',3);
 
     // set entries
-    *dot='\0';
-    strcpy(dir->filename,begin);
-    strcpy(dir->ext,++dot); // an extra '\0' is written at the end on an empty field which is already zeroed.
+    char *src,*dst;
+    for(src=str,dst=dir->filename;*src&&(*src!='.');src++,dst++) *dst=*src;
+    for(src=dot+1,dst=dir->ext;*src;src++,dst++) *dst=*src;
 
     return 1;
 }
