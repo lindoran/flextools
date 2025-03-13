@@ -1,14 +1,19 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "bindata.h"
 #include "s19.h"
 
-uint8_t memory[65536];
-uint16_t start_address;
+t_data data;
 
 int main(int argc, char *argv[]) {
 
-    s19_load(memory,&start_address,"bootsector.s19");
+    init_data(&data);
+
+    s19_load(&data,"newdisk.s19");
+
+
+    free_data(&data);
 
     return 0;
 }

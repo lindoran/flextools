@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 
-void s19_load(uint8_t *memory, uint16_t *start_address, char *filename);
+#include "bindata.h"
+
+void s19_load(t_data *data, char *filename);
 
 
 #endif
