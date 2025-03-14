@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #include "bindata.h"
-#include "s19.h"
+#include "s19_file.h"
 
 t_data data;
 

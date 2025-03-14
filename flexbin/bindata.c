@@ -7,30 +7,48 @@ void init_data(t_data *data) {
     data->run_addr=0;
     data->has_run_addr=0;
     data->data_chunk_count=0;
+    data->data_chunk = NULL;
 }
 
 void free_data(t_data *data) {
     
-    for(int i=0;i<data->data_chunk_count;i ++) {
-        t_data_chunk *chunk=&data->data_chunk[i];
+    t_data_chunk *chunk = data->data_chunk;
+
+    while(chunk) {
         free(chunk->data);
+        t_data_chunk *next_chunk = chunk->next_data_chunk;
+        free(chunk);
+        chunk=next_chunk;
     }
+    
+    data->data_chunk = NULL;
 
 }
 
 t_data_chunk *data_new_chunk(t_data *data,uint16_t start_addr) {
-    data->data_chunk_count++;
-    if (data->data_chunk_count>=MAX_DATA_CHUNK) {
-        fprintf(stderr,"Too many data chunks\n");
-        exit(-1);
+
+    t_data_chunk *current_chunk = data->data_chunk;
+
+    // point to last chunk
+    while(current_chunk && current_chunk->next_data_chunk ) {
+        current_chunk = current_chunk->next_data_chunk;
     }
 
-    t_data_chunk *chunk = &data->data_chunk[ data->data_chunk_count-1];
+    // allocate a new chunk
+    t_data_chunk *chunk = malloc(sizeof(t_data_chunk));
+    data->data_chunk_count++;
 
     chunk->start_addr=start_addr;
     chunk->data_size=0;
     chunk->data_alloc_size=DATA_CHUNK_SIZE;
     chunk->data=malloc(DATA_CHUNK_SIZE);
+    chunk->next_data_chunk = NULL;
+
+    // link the new chunk
+    if (current_chunk)
+        current_chunk->next_data_chunk = chunk;
+    else
+        data->data_chunk = chunk;
     
     return chunk;   
 }
