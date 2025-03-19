@@ -55,5 +55,6 @@ typedef union {
 
 void empty_sector(t_sector *sector);
 void sector_dump(t_sector *sector);
+void sector_load(t_sector *sector, char *filename);
 
 #endif

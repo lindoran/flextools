@@ -606,6 +606,29 @@ void floppy_add_file(t_floppy *floppy, char *filename) {
 
 }
 
+/**
+ * @brief set track into 6th byte of sector0/track0 and sector
+ *        into 7th byte for file <filename>
+ * 
+ * @param floppy 
+ * @param filename 
+ */
+
+void floppy_set_boot(t_floppy *floppy, char *filename) {
+
+    // find the file
+    t_dir_entry *dir = find_file(floppy,filename);
+    if (!dir) {
+        fprintf(stderr,"Cannot find %s on floppy\n", filename);
+        exit(-1);
+    }
+
+    t_sector *sector = floppy->tracks->sectors;
+    sector->raw.data[5]=dir->start_track;
+    sector->raw.data[6]=dir->start_sector;
+    
+}
+
 /****************************************************************************/
 /* Private functions                                                        */
 /****************************************************************************/

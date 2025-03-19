@@ -29,3 +29,16 @@ void sector_dump(t_sector *sector) {
     }
 
 }
+
+void sector_load(t_sector *sector, char *filename) {
+    FILE *fp;
+    fp = fopen(filename,"rb");
+    if (fp==NULL) {
+        fprintf(stderr,"Cannot read %s\n",filename);
+        exit(-1);
+    }
+
+    fread(sector,1,SECTOR_SIZE,fp);
+
+    fclose(fp);
+}

@@ -42,4 +42,6 @@ void floppy_add_file(t_floppy *floppy, char *filename);
 
 void floppy_extract(t_floppy *floppy, char *outdir);
 
+void floppy_set_boot(t_floppy *floppy, char *filename);
+
 #endif

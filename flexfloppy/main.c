@@ -11,6 +11,9 @@ int new_flag=0;
 int cat_flag=0;
 int extract_flag=0;
 int add_flag=0;
+int bootsector_flag=0;
+int setboot_flag=0;
+
 char *infile=NULL,*outfile=NULL,*path=NULL, *filename=NULL;
 char floppy_label[12];
 int floppy_number=0;
@@ -22,6 +25,8 @@ void usage() {
     printf("flexfloppy --in <disk.dsk> --extract <path>\n");
     printf("flexfloppy --new --tracks <num_tracks> --sectors <num_sectors> [--label <label>] [--number <number>] --out <disk.dsk>\n");
     printf("flexfloppy --in <disk.dsk> --add <filename>\n");
+    printf("flexfloppy --in <disk.dsk> --bootsector <filename>\n");
+    printf("flexfloppy --in <disk.dsk> --setboot <filename>\n");
     exit(-1);
 }
 
@@ -62,6 +67,22 @@ void do_add(char *infile,char *filename) {
     floppy_release(&floppy);
 }
 
+void do_bootsector(char *infile,char *filename) {
+    floppy_guess_geometry(&floppy,infile); 
+    floppy_import(&floppy,infile); 
+    sector_load(floppy.tracks->sectors,filename);
+    floppy_export(&floppy,infile);
+    floppy_release(&floppy);
+}
+
+void do_setboot(char *infile,char *filename) {
+    floppy_guess_geometry(&floppy,infile); 
+    floppy_import(&floppy,infile); 
+    floppy_set_boot(&floppy,filename);
+    floppy_export(&floppy,infile);
+    floppy_release(&floppy);
+}
+
 int main(int argc, char *argv[]) {
 
     int c;
@@ -79,12 +100,14 @@ int main(int argc, char *argv[]) {
             {"label", required_argument,0,'l'},
             {"number", required_argument,0,'u'},
             {"add", required_argument,0,'a'},
+            {"bootsector", required_argument,0,'b'},
+            {"setboot", required_argument,0,'d'},
             {0,0,0,0}
         };
 
         int option_index=0;
 
-        c = getopt_long (argc, argv, "cni:o:e:t:s:l:u:a:",
+        c = getopt_long (argc, argv, "cni:o:e:t:s:l:u:a:b:d:",
                        long_options, &option_index);
 
         if (c==-1) break;
@@ -133,6 +156,16 @@ int main(int argc, char *argv[]) {
                 filename = optarg;
                 break;
 
+            case 'b':
+                bootsector_flag = 1;
+                filename = optarg;
+                break;
+
+            case 'd':
+                setboot_flag = 1;
+                filename = optarg;
+                break;
+
             default:
                 usage();
         }
@@ -162,6 +195,19 @@ int main(int argc, char *argv[]) {
         do_add(infile,filename);
         return 0;
     }
+
+    // BOOT SECTOR
+    if ( (infile != NULL) && (filename !=NULL) && bootsector_flag) {
+        do_bootsector(infile,filename);
+        return 0;
+    }
+
+    // SET BOOT
+    if ( (infile != NULL) && (filename !=NULL) && setboot_flag) {
+        do_setboot(infile,filename);
+        return 0;
+    }
+
 
     usage();
    
