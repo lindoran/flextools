@@ -2,7 +2,7 @@ flexbin/flexbin
 flexfloppy/flexfloppy
 *.o
 *.dsk
-*.DSK
 *.s19
 .vscode
 out/*
+work/*
