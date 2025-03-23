@@ -56,7 +56,7 @@ void do_new(char *filename, int tracks, int sectors, char *label, int number) {
     floppy_format(&floppy,label,number);
     floppy_export(&floppy,filename);
     floppy_release(&floppy);
-    printf("OK\n");
+    printf("New disk %s created\n",filename);
 }
 
 void do_add(char *infile,char *filename) {
@@ -73,6 +73,7 @@ void do_bootsector(char *infile,char *filename) {
     sector_load(floppy.tracks->sectors,filename);
     floppy_export(&floppy,infile);
     floppy_release(&floppy);
+    printf("Bootsector %s installed on %s\n",filename,infile);
 }
 
 void do_setboot(char *infile,char *filename) {

@@ -254,15 +254,27 @@ int floppy_guess_geometry(t_floppy *floppy,char *filename) {
         floppy->side=DOUBLE_SIDE;
     }
 
-    printf("Disk has %d tracks, %d sectors",floppy->num_track, floppy->tracks_sectors );
+    
 
     floppy->density=SD_SECTORS;
+    floppy->track0_aligned=0;
+
     if (num_sector0 != floppy->tracks_sectors) {
         floppy->density=DD_SECTORS;
-        printf(", track 0 has %d sectors",num_sector0);
-    }
+       
 
-    printf(".\n\n");
+        // check if the disk image has empty sectors so that all tracks
+        // have the same length on file
+        int num_read = fread(&sector,SECTOR_SIZE,1,fp);
+        if (num_read!=1) {
+            fprintf(stderr,"%s: Read error !\n",filename);
+            exit(-2);
+        }
+
+        if (sector.usr.next_track==0)
+            floppy->track0_aligned=1;
+
+    }
 
     fclose(fp);
 
@@ -290,8 +302,10 @@ void floppy_import(t_floppy *floppy,char *filename) {
     int filesize = sb.st_size;
 
     if (filesize != get_floppy_size(floppy)) {
-        perror("bad size");
-        exit(EXIT_FAILURE);
+        //perror("bad size");
+        //exit(EXIT_FAILURE);
+        fprintf(stderr,"Warning, bad file size : %d (should be %d)\n",
+            filesize, get_floppy_size(floppy) );
     }
 
     FILE *fp = fopen(filename,"rb");
@@ -310,8 +324,10 @@ void floppy_import(t_floppy *floppy,char *filename) {
         }
         
         // special case if track 0 has less sectors than other tracks :
-        // in the .dsk file all tracks have the same length, so we have to seek
+        // in some .dsk files all tracks have the same length, so we have to seek
         // the sector difference
+        if (!floppy->track0_aligned) continue;
+
         if ( (t==0) && (floppy->track0_sectors < floppy->tracks_sectors) ) {
             int err = fseek(fp, SECTOR_SIZE*(floppy->tracks_sectors - floppy->track0_sectors), SEEK_CUR);
             if (err) {
@@ -336,13 +352,18 @@ void floppy_info(t_floppy *floppy) {
 
     t_sector *sector = &floppy->tracks->sectors[2];
 
-    printf("Volume label  : %s\n",sector->sir.volume_label);
-    printf("Volume number : %u\n",bigendian_get(&sector->sir.volume_number));
-    printf("Creation date : %d/%d/%d\n",sector->sir.creation_day,sector->sir.creation_month,sector->sir.creation_year);
-    printf("Tracks        : %d\n",floppy->num_track);
-    printf("Free sectors  : %u\n",bigendian_get(&sector->sir.total_sector));
-    printf("Max track     : %d\n",sector->sir.max_track);
-    printf("Max sector    : %d\n",sector->sir.max_sector);
+    printf("Volume label    : %s\n",sector->sir.volume_label);
+    printf("Volume number   : %u\n",bigendian_get(&sector->sir.volume_number));
+    printf("Creation date   : %d/%d/%d\n",sector->sir.creation_day,sector->sir.creation_month,sector->sir.creation_year);
+    printf("Tracks          : %d\n",floppy->num_track);
+    printf("Free sectors    : %u\n",bigendian_get(&sector->sir.total_sector));
+    printf("Max track       : %d\n",sector->sir.max_track);
+    printf("Max sector      : %d\n",sector->sir.max_sector);
+
+    if (floppy->track0_sectors != floppy->tracks_sectors) {
+        printf("Track 0 sectors : %d\n",floppy->track0_sectors);
+    }
+
     printf("\n");
 
 }
@@ -420,6 +441,9 @@ void floppy_extract(t_floppy *floppy, char *outdir) {
             if ((unsigned char)(dir->filename[0])==0xFF) continue; // deleted file
             if (dir->filename[0]==0) break;
 
+            if (dir->start_track<1) continue; // should not happen
+                                              // happens on DYNSTAR.DSK
+
             dir_get_filename(dir,filename);
 
 
@@ -443,12 +467,6 @@ void floppy_extract(t_floppy *floppy, char *outdir) {
             for(;;) {
 
                 total_sector ++;
-
-                //int sequence = bigendian_get(&file_sector->usr.sequence);
-
-                //printf("#%d [%d/%d] ",sequence, current_track,current_sector); 
-                printf(".");
-
                fwrite(&file_sector->usr.data,252,1,fp);
  
 
@@ -477,7 +495,7 @@ void floppy_extract(t_floppy *floppy, char *outdir) {
                 return;
             }
 
-            printf(" Ok.\n");
+            printf(" \t- %d sectors.\n",total_sector);
 
 
         }
@@ -626,6 +644,9 @@ void floppy_set_boot(t_floppy *floppy, char *filename) {
     t_sector *sector = floppy->tracks->sectors;
     sector->raw.data[5]=dir->start_track;
     sector->raw.data[6]=dir->start_sector;
+
+    printf("Boot set to %s - %d/%d\n",
+        filename,dir->start_track,dir->start_sector);
     
 }
 
@@ -641,12 +662,17 @@ int num_sector_for_track(t_floppy *floppy,int t) {
         return num_sector;
 }
 
-// NOTE :   in the .dsk file format, if track 0 is smaller than other tracks, empty
+// NOTE :   in some .dsk file format, if track 0 is smaller than other tracks, empty
 //          sectors are added to track 0 so all tracks have the same size
 //          ( example : DSTAR.DSK )
 int get_floppy_size(t_floppy *floppy) {
 
-    int size = floppy->tracks_sectors*floppy->num_track;
+    int size;
+    
+    if (floppy->track0_aligned)
+        size = floppy->tracks_sectors*floppy->num_track;
+    else
+        size = floppy->track0_sectors + floppy->tracks_sectors*(floppy->num_track-1);
 
     return size*SECTOR_SIZE;
 }
