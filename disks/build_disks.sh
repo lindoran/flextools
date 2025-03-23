@@ -4,7 +4,7 @@ DISKS=original_disks
 DST=lflex_disks
 LFLEX=target_lflex
 WORK=work
-
+CATALOG=catalog.txt
 
 function base_disk() {
 
@@ -79,3 +79,20 @@ copy_content fortran.lflex.img TSC_F77
 # DYNASTAR
 base_disk dynastar.lflex.img DYNASTAR 6
 copy_content dynastar.lflex.img DYNSTAR
+
+# Files Catalog
+echo "" > $CATALOG
+
+for disk in $DST/*.img
+do
+    dest="$(basename $disk _track00.0_raw.img)"
+    echo >> $CATALOG
+    echo "******************************************************************" >> $CATALOG
+    echo $dest >> $CATALOG
+    echo "******************************************************************" >> $CATALOG
+    echo >> $CATALOG
+
+    flexfloppy --in $disk --cat >> $CATALOG
+
+done
+

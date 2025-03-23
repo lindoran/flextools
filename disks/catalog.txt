@@ -1,0 +1,218 @@
+
+
+******************************************************************
+basic.lflex.img
+******************************************************************
+
+Volume label    : XBASIC_2
+Volume number   : 2
+Creation date   : 23/3/25
+Tracks          : 80
+Free sectors    : 1326
+Max track       : 79
+Max sector      : 20
+
+FILENAME EXT  SECTORS	DATE	 TRACK,SECTOR
+---------------------------------------------
+FLEX     SYS 	   26	23/03/25	01,01
+CAT      CMD 	    4	23/03/25	02,07
+DELETE   CMD 	    3	23/03/25	02,11
+RENAME   CMD 	    2	23/03/25	02,14
+EDIT     CMD 	   29	23/03/25	02,16
+ASN      CMD 	    2	23/03/25	04,05
+LIST     CMD 	    4	23/03/25	04,07
+BASIC    CMD 	   60	23/03/25	04,11
+CATT     CMD 	    4	23/03/25	07,11
+COPY     CMD 	    6	23/03/25	07,15
+READ-ME  TXT 	    3	23/03/25	08,01
+RENUMBER CMD 	    3	23/03/25	08,04
+RENUMX   CMD 	    3	23/03/25	08,07
+XBASIC   CMD 	   79	23/03/25	08,10
+XPC      CMD 	   26	23/03/25	12,09
+---------------------------------------------
+USED SECTORS	  254
+
+******************************************************************
+dynastar.lflex.img
+******************************************************************
+
+Volume label    : DYNASTAR
+Volume number   : 6
+Creation date   : 23/3/25
+Tracks          : 80
+Free sectors    : 1390
+Max track       : 79
+Max sector      : 20
+
+FILENAME EXT  SECTORS	DATE	 TRACK,SECTOR
+---------------------------------------------
+FLEX     SYS 	   26	23/03/25	01,01
+CAT      CMD 	    4	23/03/25	02,07
+DELETE   CMD 	    3	23/03/25	02,11
+RENAME   CMD 	    2	23/03/25	02,14
+EDIT     CMD 	   29	23/03/25	02,16
+ASN      CMD 	    2	23/03/25	04,05
+LIST     CMD 	    4	23/03/25	04,07
+DF       CMD 	    3	23/03/25	04,11
+DS       CMD 	    3	23/03/25	04,14
+DYNAFORM SYS 	   20	23/03/25	04,17
+DYNASTAR SYS 	   58	23/03/25	05,17
+GOTOXY   ACT 	    8	23/03/25	08,15
+GOTOXY   C64 	    8	23/03/25	09,03
+GOTOXY   SYS 	    2	23/03/25	09,11
+GOTOXY   TVI 	    6	23/03/25	09,13
+INTERP15 SYS 	    9	23/03/25	09,19
+SAVESYS  CMD 	    2	23/03/25	10,08
+SCRATCH  TXT 	    1	23/03/25	10,10
+---------------------------------------------
+USED SECTORS	  190
+
+******************************************************************
+eforth.lflex.img
+******************************************************************
+
+Volume label    : EFORTH
+Volume number   : 3
+Creation date   : 23/3/25
+Tracks          : 80
+Free sectors    : 1404
+Max track       : 79
+Max sector      : 20
+
+FILENAME EXT  SECTORS	DATE	 TRACK,SECTOR
+---------------------------------------------
+FLEX     SYS 	   26	23/03/25	01,01
+CAT      CMD 	    4	23/03/25	02,07
+DELETE   CMD 	    3	23/03/25	02,11
+RENAME   CMD 	    2	23/03/25	02,14
+EDIT     CMD 	   29	23/03/25	02,16
+ASN      CMD 	    2	23/03/25	04,05
+LIST     CMD 	    4	23/03/25	04,07
+EFORTH   CMD 	   71	23/03/25	04,11
+EFORTH   COR 	   35	23/03/25	08,02
+---------------------------------------------
+USED SECTORS	  176
+
+******************************************************************
+fortran.lflex.img
+******************************************************************
+
+Volume label    : TSC_F77
+Volume number   : 5
+Creation date   : 23/3/25
+Tracks          : 80
+Free sectors    : 1005
+Max track       : 79
+Max sector      : 20
+
+FILENAME EXT  SECTORS	DATE	 TRACK,SECTOR
+---------------------------------------------
+FLEX     SYS 	   26	23/03/25	01,01
+CAT      CMD 	    4	23/03/25	02,07
+DELETE   CMD 	    3	23/03/25	02,11
+RENAME   CMD 	    2	23/03/25	02,14
+EDIT     CMD 	   29	23/03/25	02,16
+ASN      CMD 	    2	23/03/25	04,05
+LIST     CMD 	    4	23/03/25	04,07
+ERRORS   F77 	    7	23/03/25	04,11
+F77      CMD 	   163	23/03/25	04,18
+F77      LIB 	    2	23/03/25	13,01
+LABEL    TXT 	    2	23/03/25	13,03
+LIB-GEN  CMD 	   13	23/03/25	13,05
+LIB-GEN  SRC 	   59	23/03/25	13,18
+LLOAD    CMD 	   30	23/03/25	16,17
+RELASMB  CMD 	   65	23/03/25	18,07
+RUNLIB   F77 	   156	23/03/25	21,12
+SVTEST   TXT 	    5	23/03/25	29,08
+SYMBOLS  F77 	    3	23/03/25	29,13
+---------------------------------------------
+USED SECTORS	  575
+
+******************************************************************
+introlc.lflex.img
+******************************************************************
+
+Volume label    : INTROLC
+Volume number   : 4
+Creation date   : 23/3/25
+Tracks          : 80
+Free sectors    : 549
+Max track       : 79
+Max sector      : 20
+
+FILENAME EXT  SECTORS	DATE	 TRACK,SECTOR
+---------------------------------------------
+FLEX     SYS 	   26	23/03/25	01,01
+CAT      CMD 	    4	23/03/25	02,07
+DELETE   CMD 	    3	23/03/25	02,11
+RENAME   CMD 	    2	23/03/25	02,14
+EDIT     CMD 	   29	23/03/25	02,16
+ASN      CMD 	    2	23/03/25	04,05
+LIST     CMD 	    4	23/03/25	04,07
+C1       CMD 	   132	23/03/25	04,11
+C2       CMD 	   81	23/03/25	11,03
+C3       CMD 	   137	23/03/25	15,04
+CASE     C	    7	23/03/25	22,01
+CASE     CMD 	    6	23/03/25	22,08
+FLD      CMD 	   61	23/03/25	22,14
+flex     h	   23	23/03/25	25,15
+HEX      C	    8	23/03/25	26,18
+HEX      CMD 	   21	23/03/25	27,06
+ICC      CMD 	   72	23/03/25	28,07
+ILINK    CMD 	   76	23/03/25	31,19
+LIBC     R	   91	23/03/25	35,15
+LIBMAN   CMD 	   74	23/03/25	40,06
+LIBMAN   HLP 	   44	23/03/25	43,20
+R09      CMD 	   113	23/03/25	46,04
+setjmp   h	    2	23/03/25	51,17
+SIEVE    C	    4	23/03/25	51,19
+stdio    h	    9	23/03/25	52,03
+---------------------------------------------
+USED SECTORS	  1031
+
+******************************************************************
+tscflex09.lflex.img
+******************************************************************
+
+Volume label    : TSCFLEX09
+Volume number   : 1
+Creation date   : 23/3/25
+Tracks          : 80
+Free sectors    : 1371
+Max track       : 79
+Max sector      : 20
+
+FILENAME EXT  SECTORS	DATE	 TRACK,SECTOR
+---------------------------------------------
+FLEX     SYS 	   26	23/03/25	01,01
+APPEND   CMD 	    4	23/03/25	02,07
+ASMB     CMD 	   49	23/03/25	02,11
+ASN      CMD 	    2	23/03/25	04,20
+BUILD    CMD 	    2	23/03/25	05,02
+CAT      CMD 	    4	23/03/25	05,04
+DATE     CMD 	    3	23/03/25	05,08
+DELETE   CMD 	    3	23/03/25	05,11
+EDIT     CMD 	   29	23/03/25	05,14
+ERRORS   SYS 	   10	23/03/25	07,03
+EXEC     CMD 	    2	23/03/25	07,13
+FLEX     COR 	   23	23/03/25	07,15
+I        CMD 	    2	23/03/25	08,18
+JUMP     CMD 	    2	23/03/25	08,20
+LINK     CMD 	    2	23/03/25	09,02
+LIST     CMD 	    4	23/03/25	09,04
+NEWDISK  CMD 	    7	23/03/25	09,08
+O        CMD 	    3	23/03/25	09,15
+P        CMD 	    2	23/03/25	09,18
+PRINT    CMD 	    3	23/03/25	09,20
+PRINT    SYS 	    2	23/03/25	10,03
+PROT     CMD 	    2	23/03/25	10,05
+QCHECK   CMD 	    5	23/03/25	10,07
+RENAME   CMD 	    2	23/03/25	10,12
+SAVE     CMD 	    3	23/03/25	10,14
+SAVE     LOW 	    3	23/03/25	10,17
+TTYSET   CMD 	    3	23/03/25	10,20
+VERIFY   CMD 	    2	23/03/25	11,03
+VERSION  CMD 	    2	23/03/25	11,05
+XOUT     CMD 	    3	23/03/25	11,07
+---------------------------------------------
+USED SECTORS	  209
